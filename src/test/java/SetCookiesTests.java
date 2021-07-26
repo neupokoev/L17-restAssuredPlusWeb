@@ -1,4 +1,7 @@
 import com.codeborne.selenide.WebDriverRunner;
+import io.restassured.response.Response;
+import io.restassured.response.ResponseBodyExtractionOptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Cookie;
 
@@ -13,6 +16,8 @@ import static io.restassured.RestAssured.given;
 
 public class SetCookiesTests {
 
+    private static final String BASE_URL = "http://demowebshop.tricentis.com/";
+
     @Test
     void setCookieTest() {
 
@@ -20,11 +25,12 @@ public class SetCookiesTests {
             // @formatter:off
             String authorizationCookie =
                     given()
+                            .baseUri(BASE_URL)
                             .contentType("application/x-www-form-urlencoded; charset=UTF-8")
                             .body("product_attribute_72_5_18=53&product_attribute_72_6_19=54&" +
                                     "product_attribute_72_3_20=58&addtocart_72.EnteredQuantity=4").
                     when()
-                            .post("http://demowebshop.tricentis.com/addproducttocart/details/72/1").
+                            .post("addproducttocart/details/72/1").
                     then()
                             .statusCode(200)
                             .extract()
@@ -51,8 +57,8 @@ public class SetCookiesTests {
 
         step("Получить куки и подставить в браузер", () -> {
             // @formatter:off
-            Map<String, String> cookies =
-                    given()
+            Map<String,String> cookies =
+                    given ()
                             .contentType("application/x-www-form-urlencoded; charset=UTF-8")
                             .body("product_attribute_72_5_18=53&product_attribute_72_6_19=54&" +
                                     "product_attribute_72_3_20=58&addtocart_72.EnteredQuantity=6").
@@ -81,5 +87,18 @@ public class SetCookiesTests {
             $(".cart-qty").shouldHave(text("6"));
         });
 
+    }
+
+    private Response addProductToCart(int qtyItems) {
+        return given()
+                .contentType("application/x-www-form-urlencoded; charset=UTF-8")
+                .body("addtocart_31.EnteredQuantity=" + qtyItems)
+                .when()
+                .post(BASE_URL + "/addproducttocart/details/31/1")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .extract()
+                .response();
     }
 }
